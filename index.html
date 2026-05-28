@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="apple-mobile-web-app-title" content="My Library"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#fff8e1"/>
+<title>My Library</title>
+
+<!-- PWA icons — place mylibrary.png alongside this HTML file -->
+<link rel="apple-touch-icon" href="mylibrary.png"/>
+<link rel="icon" type="image/png" href="mylibrary.png"/>
+<link rel="manifest" id="pwa-manifest"/>
+
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+
+<!-- html5-qrcode for reliable cross-device barcode scanning -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+<style>
+/* ══════════════════════════════════════════
+   DESIGN: Sunshine Library
+   Warm white & cream base · sunshine yellow
+   primary · tangerine orange · sky blue ·
+   fresh mint. Bright, joyful, airy.
+══════════════════════════════════════════ */
+:root{
+  /* backgrounds — warm whites & creams */
+  --bg:#fffdf5; --bg2:#fff8e1; --bg3:#ffffff; --bg4:#fff3c4;
+  /* borders */
+  --bd:rgba(220,160,0,.18); --bd2:rgba(220,160,0,.35); --bd3:rgba(220,160,0,.6);
+  /* accent palette */
+  --sun:#f5c200;    --sun2:#ffe066;     /* sunshine yellow */
+  --tang:#ff7220;   --tang2:#ffa060;    /* tangerine orange */
+  --sky:#0ea5e9;    --sky2:#7dd3fc;     /* sky blue */
+  --mint:#10b981;   --mint2:#6ee7b7;    /* fresh mint */
+  --rose:#f43f5e;   --rose2:#fda4af;    /* rose red */
+  --ink:#1a1400;    --ink2:#4a3c00;     /* deep warm text */
+  /* text */
+  --tx:#1a1400; --tx2:#6b5800; --tx3:#b8960a;
+  /* semantic */
+  --green:#10b981; --red:#f43f5e; --blue:#0ea5e9;
+  --r:18px; --rs:11px; --rsm:7px;
+  --shadow:0 4px 24px rgba(245,194,0,.2);
+  --shadow2:0 8px 32px rgba(0,0,0,.08);
+  --st:env(safe-area-inset-top,0px);
+  --sb:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--tx);
+  font-family:'Nunito',sans-serif;overscroll-behavior:none;
+  -webkit-text-size-adjust:100%;text-rendering:optimizeLegibility}
+body{display:flex;flex-direction:column;max-width:520px;margin:0 auto;
+  min-height:100vh;position:relative}
+
+/* subtle warm dots pattern */
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:radial-gradient(circle,rgba(245,194,0,.12) 1px,transparent 1px);
+  background-size:28px 28px;opacity:1}
+
+/* ── HEADER ── */
+#hdr{position:sticky;top:0;z-index:200;
+  padding:calc(var(--st)+10px) 18px 0;
+  background:linear-gradient(180deg,var(--sun) 0%,#ffd600 100%);
+  border-bottom:3px solid #e6b800;
+  box-shadow:0 2px 16px rgba(245,194,0,.35)}
+.hdr-top{display:flex;align-items:center;justify-content:space-between;padding-bottom:10px}
+#hdr h1{font-family:'Fredoka One',cursive;font-size:26px;font-weight:400;
+  color:var(--ink);letter-spacing:.5px;
+  display:flex;align-items:center;gap:9px;line-height:1;
+  text-shadow:0 1px 0 rgba(255,255,255,.4)}
+#hdr h1 .icon{font-size:28px}
+.hdr-sub{font-size:10px;font-weight:800;color:rgba(26,20,0,.5);
+  text-transform:uppercase;letter-spacing:1.4px;margin-top:1px}
+
+/* ── NAV ── */
+#nav{display:flex;background:#fff;border-bottom:2px solid var(--bd);
+  position:sticky;top:calc(var(--st) + 58px);z-index:199;
+  box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:10px 4px 8px;background:none;border:none;cursor:pointer;
+  color:#c9a800;font-family:'Nunito',sans-serif;transition:color .18s;min-width:0}
+.nb.on{color:var(--tang)}
+.nb.on .nb-indicator{transform:scaleX(1)}
+.nb-indicator{display:block;height:3px;
+  background:linear-gradient(90deg,var(--tang),var(--sun));
+  border-radius:2px;width:28px;margin-top:4px;
+  transform:scaleX(0);transition:transform .22s cubic-bezier(.4,0,.2,1)}
+.nb svg{width:20px;height:20px;stroke:currentColor;stroke-width:2;fill:none;
+  stroke-linecap:round;stroke-linejoin:round}
+.nb-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;margin-top:1px}
+
+/* ── CONTENT ── */
+#content{flex:1;overflow-y:auto;overflow-x:hidden;position:relative;z-index:1;
+  padding-bottom:calc(20px + var(--sb))}
+#content::-webkit-scrollbar{width:3px}
+#content::-webkit-scrollbar-thumb{
+  background:linear-gradient(to bottom,var(--sun),var(--tang));border-radius:2px}
+
+/* ── PAGES ── */
+.pg{display:none;padding:16px}
+.pg.on{display:block;animation:fadeIn .22s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── DASHBOARD STATS ── */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.stat-tile{border-radius:var(--r);padding:16px 10px 14px;cursor:pointer;
+  text-align:center;transition:transform .18s,box-shadow .18s;
+  position:relative;overflow:hidden;border:2px solid transparent}
+.stat-tile:active{transform:scale(.95)}
+.stat-tile:not(.lent):not(.borrow){
+  background:linear-gradient(135deg,#ffe066,#f5c200);
+  border-color:#e6b800;box-shadow:0 4px 18px rgba(245,194,0,.4)}
+.stat-tile.lent{
+  background:linear-gradient(135deg,#ffd6b0,#ff9c55);
+  border-color:#ff7220;box-shadow:0 4px 18px rgba(255,114,32,.3)}
+.stat-tile.borrow{
+  background:linear-gradient(135deg,#bae6fd,#38bdf8);
+  border-color:#0ea5e9;box-shadow:0 4px 18px rgba(14,165,233,.3)}
+.stat-tile.active{transform:scale(1.04);box-shadow:0 6px 28px rgba(245,194,0,.55)}
+.stat-tile.lent.active{box-shadow:0 6px 28px rgba(255,114,32,.45)}
+.stat-tile.borrow.active{box-shadow:0 6px 28px rgba(14,165,233,.4)}
+.stat-lbl{font-size:9px;font-weight:800;color:rgba(26,20,0,.6);
+  text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.stat-num{font-family:'Fredoka One',cursive;font-size:44px;font-weight:400;line-height:1}
+.stat-tile:not(.lent):not(.borrow) .stat-num{color:var(--ink)}
+.stat-tile.lent .stat-num{color:#7a2900}
+.stat-tile.borrow .stat-num{color:#0c4a6e}
+.stat-sub{font-size:10px;color:rgba(26,20,0,.45);margin-top:4px}
+
+/* ── SEARCH ── */
+.search-box{position:relative;margin-bottom:14px}
+.search-box svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);
+  width:15px;height:15px;stroke:var(--tx3);stroke-width:2;fill:none}
+#search-inp{width:100%;padding:11px 14px 11px 37px;background:#fff;
+  border:2px solid var(--bd);border-radius:var(--r);font-size:14px;
+  font-family:'Nunito',sans-serif;color:var(--tx);outline:none;
+  transition:border-color .15s,box-shadow .15s;-webkit-appearance:none;
+  box-shadow:0 2px 8px rgba(0,0,0,.05)}
+#search-inp:focus{border-color:var(--sun);box-shadow:0 0 0 3px rgba(245,194,0,.2)}
+#search-inp::placeholder{color:#c9a800}
+
+/* ── FILTER PILLS ── */
+.filter-bar{display:flex;gap:7px;overflow-x:auto;padding-bottom:2px;margin-bottom:14px}
+.filter-bar::-webkit-scrollbar{display:none}
+.fpill{font-size:11px;font-weight:800;padding:6px 16px;border-radius:999px;
+  border:2px solid var(--bd2);background:#fff;color:var(--tx2);cursor:pointer;
+  white-space:nowrap;font-family:'Nunito',sans-serif;transition:all .15s;flex-shrink:0}
+.fpill.on{background:linear-gradient(90deg,var(--tang),#ff5500);
+  border-color:var(--tang);color:#fff;box-shadow:0 2px 12px rgba(255,114,32,.35)}
+.fpill:active:not(.on){background:var(--bg2)}
+
+/* ── BOOK CARDS ── */
+.book-card{background:#fff;border:2px solid var(--bd);border-radius:var(--r);
+  margin-bottom:12px;overflow:hidden;
+  transition:box-shadow .2s,border-color .2s,transform .15s;
+  box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.book-card:hover{border-color:var(--bd2);box-shadow:0 6px 24px rgba(0,0,0,.1);transform:translateY(-2px)}
+/* vibrant coloured left stripe */
+.book-card:nth-child(4n+1){border-left:5px solid var(--sun)}
+.book-card:nth-child(4n+2){border-left:5px solid var(--sky)}
+.book-card:nth-child(4n+3){border-left:5px solid var(--tang)}
+.book-card:nth-child(4n+4){border-left:5px solid var(--mint)}
+.bc-body{padding:14px 16px}
+.bc-id{font-family:'DM Mono',monospace;font-size:10px;color:var(--tx3);margin-bottom:4px;letter-spacing:.3px}
+.bc-title{font-family:'Fredoka One',cursive;font-size:20px;font-weight:400;
+  color:var(--ink);line-height:1.3;margin-bottom:3px;letter-spacing:.3px}
+.bc-author{font-size:13px;color:var(--tx2);margin-bottom:10px}
+.bc-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.tag{font-size:10px;font-weight:800;padding:3px 10px;border-radius:999px;letter-spacing:.3px}
+.tag-genre{background:#d1fae5;color:#065f46;border:1px solid #6ee7b7}
+.tag-page{background:#fef9c3;color:#854d0e;border:1px solid #fde047}
+.tag-lent{background:#fff3e0;color:#7a2900;border:1px solid #ffb74d}
+.tag-borrow{background:#e0f2fe;color:#0c4a6e;border:1px solid #7dd3fc}
+.bc-loc{font-size:11px;color:var(--tx3);display:flex;align-items:center;gap:5px;margin-bottom:8px}
+.bc-loc svg{width:11px;height:11px;stroke:var(--tang);stroke-width:2;fill:none;flex-shrink:0}
+.bc-desc{font-size:12px;color:#888;line-height:1.65;margin-bottom:0;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.bc-actions{display:flex;gap:0;border-top:2px solid var(--bg2);background:var(--bg2)}
+.bca{flex:1;padding:10px 8px;background:none;border:none;cursor:pointer;
+  font-size:12px;font-weight:800;color:var(--tx2);font-family:'Nunito',sans-serif;
+  transition:color .15s,background .15s;display:flex;align-items:center;justify-content:center;gap:5px}
+.bca:not(:last-child){border-right:2px solid rgba(220,160,0,.15)}
+.bca:hover,.bca:active{background:rgba(245,194,0,.15);color:var(--ink)}
+.bca.del:hover,.bca.del:active{background:rgba(244,63,94,.08);color:var(--rose)}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:48px 20px}
+.empty .ei{font-size:56px;margin-bottom:14px;display:block;
+  animation:bounce 2s ease-in-out infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.empty p{font-size:14px;line-height:1.75;color:var(--tx3)}
+.empty strong{color:var(--tang)}
+
+/* ── FORM PAGE ── */
+.form-section{background:#fff;border:2px solid var(--bd);border-radius:var(--r);
+  padding:16px 16px 18px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+.fsec-title{font-family:'Fredoka One',cursive;font-size:19px;font-weight:400;
+  color:var(--tang);margin-bottom:14px;display:flex;align-items:center;gap:8px;letter-spacing:.3px}
+.fg{margin-bottom:12px}
+.fg:last-child{margin-bottom:0}
+.lbl{font-size:11px;font-weight:800;color:var(--tx2);display:block;margin-bottom:5px;
+  text-transform:uppercase;letter-spacing:.6px}
+input[type=text],input[type=number],input[type=date],select,textarea{
+  width:100%;padding:11px 13px;background:var(--bg);border:2px solid var(--bd);
+  border-radius:var(--rs);font-size:14px;font-family:'Nunito',sans-serif;color:var(--tx);
+  outline:none;-webkit-appearance:none;appearance:none;
+  transition:border-color .15s,box-shadow .15s;color-scheme:light}
+input:focus,select:focus,textarea:focus{
+  border-color:var(--sun);box-shadow:0 0 0 3px rgba(245,194,0,.2)}
+input::placeholder,textarea::placeholder{color:#c9a800}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23b8960a' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;padding-right:34px}
+select option{background:#fff;color:var(--tx)}
+textarea{resize:vertical;min-height:100px;line-height:1.65}
+.frow{display:flex;gap:10px}
+.frow>.fg{flex:1;margin-bottom:0}
+
+/* ── SCANNER ── */
+#scanner-shell{display:none;border-radius:var(--r);overflow:hidden;
+  background:#000;margin-bottom:12px;border:2px solid var(--tang);
+  position:relative;box-shadow:0 0 20px rgba(255,114,32,.3)}
+#scanner-shell.on{display:block}
+#reader{width:100%;min-height:180px}
+#reader video{width:100%!important;height:auto!important;display:block!important;
+  min-height:180px;object-fit:cover}
+#reader img{display:none!important}
+#reader div{box-shadow:none!important;border:none!important}
+.scan-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.scan-guide{width:72%;max-width:260px;height:80px;border:2.5px solid var(--sun);
+  border-radius:8px;box-shadow:0 0 0 9999px rgba(0,0,0,.5);position:relative}
+.scan-corner{position:absolute;width:18px;height:18px;border-color:var(--sun2);border-style:solid}
+.sc-tl{top:-2px;left:-2px;border-width:3px 0 0 3px;border-radius:4px 0 0 0}
+.sc-tr{top:-2px;right:-2px;border-width:3px 3px 0 0;border-radius:0 4px 0 0}
+.sc-bl{bottom:-2px;left:-2px;border-width:0 0 3px 3px;border-radius:0 0 0 4px}
+.sc-br{bottom:-2px;right:-2px;border-width:0 3px 3px 0;border-radius:0 0 4px 0}
+.scan-line{position:absolute;left:2px;right:2px;height:2px;
+  background:linear-gradient(90deg,transparent,var(--sun),transparent);
+  animation:scanAnim 1.8s ease-in-out infinite;
+  box-shadow:0 0 8px var(--sun)}
+@keyframes scanAnim{0%,100%{top:4px;opacity:.7}50%{top:calc(100% - 6px);opacity:1}}
+.scan-tip{padding:10px 14px;text-align:center;font-size:12px;font-weight:700;
+  color:var(--sun2);background:rgba(0,0,0,.75);letter-spacing:.3px}
+
+/* ── OCR ── */
+.ocr-box{background:#fffde7;border:2px dashed var(--bd3);
+  border-radius:var(--r);padding:14px;margin-top:4px}
+#ocr-file-label{display:block;background:#fff;border:2px dashed var(--bd2);
+  border-radius:var(--rs);padding:18px;text-align:center;cursor:pointer;
+  color:var(--tx3);font-size:13px;line-height:1.6;
+  transition:border-color .15s,background .15s;margin-bottom:10px}
+#ocr-file-label:hover{border-color:var(--tang);color:var(--tang);background:#fff8f0}
+#ocr-canvas-wrap{display:none;position:relative;margin:0 0 10px;
+  border-radius:var(--rs);overflow:hidden;border:2px solid var(--sun);
+  background:#000;touch-action:none;-webkit-user-select:none;user-select:none;
+  box-shadow:0 0 16px rgba(245,194,0,.3)}
+#ocr-canvas{display:block;width:100%;cursor:crosshair;touch-action:none}
+.ocr-inst{font-size:11px;color:var(--tx2);line-height:1.6;margin-bottom:9px;
+  background:#fff8e1;border-radius:var(--rsm);padding:8px 11px;
+  border:1px solid var(--bd);display:none}
+.ocr-status{font-size:12px;font-weight:800;color:var(--mint);min-height:16px;margin-top:8px}
+.progress-bar{height:5px;background:var(--bg2);border-radius:3px;margin-top:8px;overflow:hidden;display:none}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--sun),var(--tang),var(--mint));
+  border-radius:3px;width:0%;transition:width .2s}
+
+/* ── BUTTONS ── */
+.btn{width:100%;padding:13px;border-radius:var(--rs);border:none;
+  font-size:14px;font-weight:800;font-family:'Nunito',sans-serif;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  transition:opacity .15s,transform .1s,box-shadow .15s;
+  -webkit-appearance:none;letter-spacing:.3px}
+.btn:active{transform:scale(.97);opacity:.88}
+.btn-gold{background:linear-gradient(90deg,var(--tang),#ff5500);color:#fff;
+  box-shadow:0 4px 16px rgba(255,114,32,.4)}
+.btn-gold:hover{box-shadow:0 6px 22px rgba(255,114,32,.55)}
+.btn-dark{background:var(--ink);color:var(--sun2);border:none}
+.btn-outline{background:transparent;border:2px solid var(--tang);color:var(--tang)}
+.btn-rust{background:linear-gradient(90deg,var(--rose),#c0002d);color:#fff;
+  box-shadow:0 3px 14px rgba(244,63,94,.3)}
+.btn-green{background:linear-gradient(90deg,#059669,#10b981);color:#fff;
+  box-shadow:0 3px 14px rgba(16,185,129,.3)}
+.btn-sm{padding:9px 14px;font-size:12px;width:auto;border-radius:var(--rsm)}
+
+/* ── MODAL ── */
+#overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);
+  z-index:600;align-items:flex-end;justify-content:center}
+#overlay.on{display:flex}
+#modal{background:#fff;border:2px solid var(--bd2);
+  border-radius:var(--r) var(--r) 0 0;width:100%;max-width:520px;
+  padding:18px 18px calc(22px + var(--sb));max-height:88vh;overflow-y:auto;
+  animation:slideUp .25s cubic-bezier(.4,0,.2,1)}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.modal-hdr h2{font-family:'Fredoka One',cursive;font-size:21px;font-weight:400;color:var(--ink)}
+.modal-x{background:none;border:none;font-size:26px;cursor:pointer;color:#aaa;padding:0;line-height:1}
+.detail-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.detail-cell{background:var(--bg2);border-radius:var(--rs);padding:10px 12px;
+  border:1.5px solid var(--bd)}
+.dc-lbl{font-size:10px;font-weight:800;color:var(--tx3);text-transform:uppercase;letter-spacing:.5px}
+.dc-val{font-size:13px;font-weight:700;color:var(--tx);margin-top:2px}
+
+/* ── BACKUP TAB ── */
+.bk-card{background:#fff;border:2px solid var(--bd);border-radius:var(--r);
+  padding:16px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+.bk-title{font-family:'Fredoka One',cursive;font-size:18px;font-weight:400;
+  color:var(--tang);margin-bottom:5px;display:flex;align-items:center;gap:8px}
+.bk-desc{font-size:13px;color:var(--tx2);line-height:1.65;margin-bottom:13px}
+.warn-box{background:#fff1f2;border:1.5px solid #fda4af;
+  border-radius:var(--rsm);padding:10px 13px;font-size:12px;color:#be123c;
+  margin-bottom:12px;line-height:1.6}
+.info-box{background:#e0f2fe;border:1.5px solid #7dd3fc;
+  border-radius:var(--rsm);padding:10px 13px;font-size:12px;color:#0369a1;
+  margin-bottom:12px;line-height:1.6}
+.step-list{counter-reset:s;display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.step-item{counter-increment:s;display:flex;gap:10px;font-size:13px;color:var(--tx2);
+  line-height:1.6;align-items:flex-start}
+.step-item::before{content:counter(s);
+  background:linear-gradient(135deg,var(--tang),#ff5500);color:#fff;
+  font-size:10px;font-weight:800;width:22px;height:22px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;
+  box-shadow:0 2px 8px rgba(255,114,32,.4)}
+.export-stats{font-size:12px;color:var(--tx2);margin-bottom:13px;
+  background:var(--bg2);border-radius:var(--rsm);padding:9px 12px;
+  font-family:'DM Mono',monospace;border:1.5px solid var(--bd)}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:calc(22px + var(--sb));left:50%;z-index:900;
+  transform:translateX(-50%) translateY(12px);
+  background:var(--ink);border:none;border-radius:var(--rs);
+  padding:11px 24px;font-size:13px;font-weight:800;opacity:0;transition:all .22s;
+  pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center;
+  color:var(--sun2);font-family:'Nunito',sans-serif;
+  box-shadow:0 4px 24px rgba(0,0,0,.25)}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.err{color:var(--rose2);background:#3a0010}
+
+/* ── DIVIDER ── */
+.divider{height:1.5px;background:var(--bg2);margin:14px 0}
+
+/* ── SCAN + FETCH ROW ── */
+.isbn-row{display:flex;gap:8px}
+.isbn-row input{flex:1;min-width:0}
+.isbn-row .btn{width:auto;padding:11px 13px;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="hdr">
+  <div class="hdr-top">
+    <div>
+      <h1><span class="icon">📚</span>My Library</h1>
+      <div class="hdr-sub">Personal Book Catalogue</div>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav id="nav">
+  <button class="nb on" onclick="goTo('dash')" id="nb-dash">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+    <span class="nb-lbl">Dashboard</span>
+    <span class="nb-indicator"></span>
+  </button>
+  <button class="nb" onclick="goTo('add')" id="nb-add">
+    <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+    <span class="nb-lbl">Add Book</span>
+    <span class="nb-indicator"></span>
+  </button>
+  <button class="nb" onclick="goTo('bk')" id="nb-bk">
+    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    <span class="nb-lbl">Backup</span>
+    <span class="nb-indicator"></span>
+  </button>
+</nav>
+
+<!-- MAIN CONTENT -->
+<div id="content">
+
+  <!-- ① DASHBOARD -->
+  <div class="pg on" id="pg-dash">
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-tile active" id="stat-all" onclick="setFilter('all')">
+        <div class="stat-lbl">Total</div>
+        <div class="stat-num" id="n-total">0</div>
+        <div class="stat-sub">books</div>
+      </div>
+      <div class="stat-tile lent" id="stat-lent" onclick="setFilter('lent')">
+        <div class="stat-lbl">Lent out</div>
+        <div class="stat-num" id="n-lent">0</div>
+        <div class="stat-sub">books</div>
+      </div>
+      <div class="stat-tile borrow" id="stat-borrow" onclick="setFilter('borrowed')">
+        <div class="stat-lbl">Borrowed</div>
+        <div class="stat-num" id="n-borrow">0</div>
+        <div class="stat-sub">books</div>
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-box">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="search-inp" placeholder="Search title, author, genre, ISBN…" oninput="renderBooks()"/>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-bar">
+      <button class="fpill on" data-f="all" onclick="setFilter('all')">All books</button>
+      <button class="fpill" data-f="lent" onclick="setFilter('lent')">Lent out</button>
+      <button class="fpill" data-f="borrowed" onclick="setFilter('borrowed')">Borrowed</button>
+    </div>
+
+    <!-- Book list -->
+    <div id="books-list"></div>
+  </div>
+
+  <!-- ② ADD / EDIT BOOK -->
+  <div class="pg" id="pg-add">
+    <div class="form-section">
+      <div class="fsec-title" id="form-heading">📖 Add New Book</div>
+      <input type="hidden" id="edit-id"/>
+
+      <!-- ISBN + SCANNER -->
+      <div class="fg">
+        <label class="lbl">ISBN / Barcode</label>
+        <div class="isbn-row">
+          <input type="text" id="isbn" placeholder="Scan or enter ISBN"/>
+          <button class="btn btn-dark btn-sm" id="scan-btn" onclick="toggleScanner()">📷 Scan</button>
+          <button class="btn btn-gold btn-sm" onclick="fetchMeta()">🔍 Fetch</button>
+        </div>
+      </div>
+
+      <!-- SCANNER SHELL -->
+      <div id="scanner-shell">
+        <div id="reader"></div>
+        <div class="scan-overlay">
+          <div class="scan-guide">
+            <div class="scan-corner sc-tl"></div>
+            <div class="scan-corner sc-tr"></div>
+            <div class="scan-corner sc-bl"></div>
+            <div class="scan-corner sc-br"></div>
+            <div class="scan-line"></div>
+          </div>
+        </div>
+        <div class="scan-tip" id="scan-tip">Align barcode inside the frame · hold steady</div>
+      </div>
+
+      <!-- BOOK FIELDS -->
+      <div class="fg">
+        <label class="lbl">Book Title <span style="color:var(--rust)">*</span></label>
+        <input type="text" id="title" placeholder="Enter or auto-fetched"/>
+      </div>
+      <div class="fg">
+        <label class="lbl">Author(s)</label>
+        <input type="text" id="author" placeholder="Author name(s)"/>
+      </div>
+      <div class="frow">
+        <div class="fg"><label class="lbl">Pages</label><input type="number" id="pages" placeholder="320"/></div>
+        <div class="fg"><label class="lbl">Year</label><input type="number" id="year" placeholder="2024"/></div>
+      </div>
+      <div class="fg">
+        <label class="lbl">Genre</label>
+        <input type="text" id="genre" placeholder="e.g. Fiction, Mystery, History"/>
+      </div>
+      <div class="fg">
+        <label class="lbl">Publisher</label>
+        <input type="text" id="publisher" placeholder="Publisher name"/>
+      </div>
+      <div class="fg">
+        <label class="lbl">Language</label>
+        <input type="text" id="language" placeholder="English, Hindi, Bengali…"/>
+      </div>
+
+      <!-- DESCRIPTION + OCR -->
+      <div class="fg">
+        <label class="lbl">Description / Story</label>
+        <textarea id="description" placeholder="Synopsis, story plot, notes…"></textarea>
+      </div>
+
+      <!-- OCR SECTION -->
+      <div class="ocr-box">
+        <div style="font-size:12px;font-weight:800;color:var(--tx2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px">
+          📷 Extract text from photo
+        </div>
+        <label id="ocr-file-label" for="ocr-file">
+          <span style="font-size:28px;display:block;margin-bottom:6px">🖼</span>
+          Tap to choose a photo of the back cover<br/>
+          <span style="font-size:11px">💡 Best results: good lighting, sharp focus, hold phone steady</span>
+        </label>
+        <input type="file" id="ocr-file" accept="image/*" style="display:none" onchange="loadOCRImage(event)"/>
+        <div id="ocr-canvas-wrap">
+          <canvas id="ocr-canvas" ontouchstart="cropTouchStart(event)" ontouchmove="cropTouchMove(event)" ontouchend="cropTouchEnd(event)"
+            onmousedown="cropMouseDown(event)" onmousemove="cropMouseMove(event)" onmouseup="cropMouseUp(event)"></canvas>
+        </div>
+        <div class="ocr-inst" id="ocr-inst">
+          Drag to select only the text area → avoid decorative borders/images → tap <strong style="color:var(--tang)">Extract text</strong>
+        </div>
+        <div style="display:none;gap:8px;flex-wrap:wrap" id="ocr-action-row">
+          <button class="btn btn-gold btn-sm" onclick="runOCR()">Extract text</button>
+          <button class="btn btn-dark btn-sm" onclick="clearCrop()">Reset crop</button>
+          <button class="btn btn-dark btn-sm" onclick="resetOCR()">Remove image</button>
+        </div>
+        <div class="progress-bar" id="ocr-progress"><div class="progress-fill" id="ocr-fill"></div></div>
+        <div class="ocr-status" id="ocr-status"></div>
+      </div>
+    </div>
+
+    <!-- LOCATION -->
+    <div class="form-section">
+      <div class="fsec-title">📍 Location</div>
+      <div class="frow">
+        <div class="fg"><label class="lbl">Almirah / Cabinet</label><input type="text" id="almirah" placeholder="e.g. A1"/></div>
+        <div class="fg"><label class="lbl">Shelf</label><input type="text" id="shelf" placeholder="e.g. S3"/></div>
+      </div>
+      <div class="fg">
+        <label class="lbl">Row position</label>
+        <select id="row-pos">
+          <option value="">Not specified</option>
+          <option value="Front Row">Front Row</option>
+          <option value="Middle Row">Middle Row</option>
+          <option value="Back Row">Back Row</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- LENDING / BORROWING -->
+    <div class="form-section">
+      <div class="fsec-title">🤝 Lending &amp; Borrowing</div>
+      <div class="frow">
+        <div class="fg"><label class="lbl">Lent To</label><input type="text" id="lent-to" placeholder="Person name"/></div>
+        <div class="fg"><label class="lbl">Lent Date</label><input type="date" id="lent-date"/></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label class="lbl">Borrowed From</label><input type="text" id="borrow-from" placeholder="Person name"/></div>
+        <div class="fg"><label class="lbl">Borrow Date</label><input type="date" id="borrow-date"/></div>
+      </div>
+      <div class="fg"><label class="lbl">Personal Notes</label>
+        <textarea id="notes" placeholder="Your own notes, reading status, ratings…" style="min-height:70px"></textarea>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-bottom:20px">
+      <button class="btn btn-gold" id="save-btn" onclick="saveBook()">Save Book</button>
+      <button class="btn btn-dark btn-sm" onclick="cancelEdit()" style="width:auto;padding:13px 18px">Cancel</button>
+    </div>
+  </div>
+
+  <!-- ③ BACKUP -->
+  <div class="pg" id="pg-bk">
+
+    <div class="bk-card">
+      <div class="bk-title">📤 Export Backup</div>
+      <div class="bk-desc">Download your entire library as a JSON file. Save it to Google Drive, iCloud, email — anywhere you like.</div>
+      <div class="export-stats" id="export-stats">—</div>
+      <button class="btn btn-gold" onclick="exportData()">Export library JSON</button>
+    </div>
+
+    <div class="bk-card">
+      <div class="bk-title">📥 Import Backup</div>
+      <div class="bk-desc">Restore your library from a backup file. Works on any device — Android or iPhone.</div>
+      <div class="warn-box">⚠️ This replaces <strong>all current data</strong> on this device with the backup.</div>
+      <label style="display:block;background:var(--bg4);border:2px dashed var(--bd2);border-radius:var(--rs);
+        padding:20px;text-align:center;cursor:pointer;color:var(--tx3);font-size:13px;
+        line-height:1.65;margin-bottom:0">
+        <span style="font-size:28px;display:block;margin-bottom:6px">📂</span>
+        Tap to choose backup file (.json)
+        <input type="file" id="import-file" accept=".json,application/json" style="display:none" onchange="importData(event)"/>
+      </label>
+    </div>
+
+    <div class="bk-card">
+      <div class="bk-title">📱 Switching Phones</div>
+      <div class="step-list">
+        <div class="step-item">On your old phone — export and save the file to Google Drive or iCloud Drive.</div>
+        <div class="step-item">On your new phone — open this HTML file in Chrome (Android) or Safari (iPhone).</div>
+        <div class="step-item">Go to Backup → Import and choose the file from your cloud storage.</div>
+        <div class="step-item">All your books appear instantly. Done.</div>
+      </div>
+      <div class="info-box">💡 This app runs identically on Android and iPhone — same HTML file, same data format, no app store needed.</div>
+    </div>
+
+    <div class="bk-card">
+      <div class="bk-title">🏠 Add to Home Screen</div>
+      <div class="step-list">
+        <div class="step-item"><strong style="color:var(--tx2)">iPhone:</strong> Open in Safari → tap the Share button → "Add to Home Screen"</div>
+        <div class="step-item"><strong style="color:var(--tx2)">Android:</strong> Open in Chrome → tap the 3-dot menu → "Add to Home screen"</div>
+        <div class="step-item">Place <code style="background:var(--bg4);padding:1px 5px;border-radius:4px;font-size:11px">mylibrary.png</code> in the same folder as this HTML file to use your own icon.</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<!-- DETAIL MODAL -->
+<div id="overlay" onclick="overlayBgClick(event)">
+  <div id="modal">
+    <div class="modal-hdr">
+      <h2 id="modal-ttl">Book Details</h2>
+      <button class="modal-x" onclick="closeModal()">×</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+//  STATE & PERSISTENCE
+// ═══════════════════════════════════════════
+let books = [];
+let activeFilter = 'all';
+let editingId = null;
+let scannerInst = null;
+let scannerOn = false;
+
+// OCR state
+let ocrImage = null, ocrCtx = null, ocrScaleX = 1, ocrScaleY = 1;
+let cropA = null, cropB = null, cropping = false;
+
+function load(){
+  try{ books = JSON.parse(localStorage.getItem('mylib_v1') || '[]'); }catch(e){ books = []; }
+}
+function save(){ localStorage.setItem('mylib_v1', JSON.stringify(books)); }
+
+// ═══════════════════════════════════════════
+//  UTILS
+// ═══════════════════════════════════════════
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function today(){ return new Date().toISOString().slice(0,10); }
+function uid(){ return 'BK-' + Math.random().toString(36).substring(2,8).toUpperCase(); }
+
+let _toastTimer;
+function toast(msg, type){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = type === 'err' ? 'on err' : 'on';
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.className = '', 2800);
+}
+
+// ═══════════════════════════════════════════
+//  NAV
+// ═══════════════════════════════════════════
+function goTo(pg){
+  document.querySelectorAll('.pg').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b => b.classList.remove('on'));
+  document.getElementById('pg-' + pg).classList.add('on');
+  document.getElementById('nb-' + pg).classList.add('on');
+  document.getElementById('content').scrollTop = 0;
+  if (pg !== 'add') stopScanner();
+  if (pg === 'dash') renderBooks();
+  if (pg === 'bk') refreshExportStats();
+}
+
+// ═══════════════════════════════════════════
+//  STATS + FILTER
+// ═══════════════════════════════════════════
+function updateStats(){
+  document.getElementById('n-total').textContent = books.length;
+  document.getElementById('n-lent').textContent = books.filter(b => b.lentTo).length;
+  document.getElementById('n-borrow').textContent = books.filter(b => b.borrowFrom).length;
+}
+
+function setFilter(f){
+  activeFilter = f;
+  ['all','lent','borrow'].forEach(k => {
+    document.getElementById('stat-' + (k === 'all' ? 'all' : k === 'lent' ? 'lent' : 'borrow'))?.classList.toggle('active', k === f || (f === 'borrowed' && k === 'borrow'));
+  });
+  document.getElementById('stat-all').classList.toggle('active', f === 'all');
+  document.getElementById('stat-lent').classList.toggle('active', f === 'lent');
+  document.getElementById('stat-borrow').classList.toggle('active', f === 'borrowed');
+  document.querySelectorAll('.fpill').forEach(p => p.classList.toggle('on', p.dataset.f === f));
+  renderBooks();
+}
+
+// ═══════════════════════════════════════════
+//  RENDER BOOK LIST
+// ═══════════════════════════════════════════
+function renderBooks(){
+  updateStats();
+  const q = (document.getElementById('search-inp')?.value || '').toLowerCase().trim();
+  const list = books.filter(b => {
+    if (activeFilter === 'lent' && !b.lentTo) return false;
+    if (activeFilter === 'borrowed' && !b.borrowFrom) return false;
+    if (!q) return true;
+    return ['title','author','genre','isbn','publisher','language'].some(k => (b[k]||'').toLowerCase().includes(q));
+  });
+  const el = document.getElementById('books-list');
+  if (!list.length){
+    el.innerHTML = `<div class="empty"><div class="ei">${books.length ? '🔍' : '📚'}</div><p>${books.length ? 'No books match your search.' : 'Your library is empty.<br><strong>Tap Add Book</strong> to get started.'}</p></div>`;
+    return;
+  }
+  el.innerHTML = list.map(b => `
+    <div class="book-card" id="card-${b.id}">
+      <div class="bc-body">
+        <div class="bc-id">${esc(b.id)}</div>
+        <div class="bc-title">${esc(b.title)}</div>
+        <div class="bc-author">${esc(b.author || '')}</div>
+        <div class="bc-tags">
+          ${b.genre ? `<span class="tag tag-genre">${esc(b.genre)}</span>` : ''}
+          ${b.pages ? `<span class="tag tag-page">${esc(b.pages)} pp</span>` : ''}
+          ${b.year ? `<span class="tag tag-page">${esc(b.year)}</span>` : ''}
+          ${b.language ? `<span class="tag tag-page">${esc(b.language)}</span>` : ''}
+          ${b.lentTo ? `<span class="tag tag-lent">⚠ Lent: ${esc(b.lentTo)}</span>` : ''}
+          ${b.borrowFrom ? `<span class="tag tag-borrow">📘 From: ${esc(b.borrowFrom)}</span>` : ''}
+        </div>
+        ${(b.almirah||b.shelf||b.rowPos) ? `<div class="bc-loc"><svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>${[b.almirah,b.shelf,b.rowPos].filter(Boolean).join(' / ')}</div>` : ''}
+        ${b.description ? `<div class="bc-desc">${esc(b.description)}</div>` : ''}
+      </div>
+      <div class="bc-actions">
+        <button class="bca" onclick="editBook('${b.id}')">✏️ Edit</button>
+        <button class="bca" onclick="viewBook('${b.id}')">📖 Details</button>
+        <button class="bca del" onclick="deleteBook('${b.id}')">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+// ═══════════════════════════════════════════
+//  VIEW BOOK DETAIL MODAL
+// ═══════════════════════════════════════════
+function viewBook(id){
+  const b = books.find(x => x.id === id); if (!b) return;
+  document.getElementById('modal-ttl').textContent = b.title;
+  const fields = [
+    ['Author', b.author], ['ISBN', b.isbn], ['Pages', b.pages],
+    ['Year', b.year], ['Genre', b.genre], ['Publisher', b.publisher],
+    ['Language', b.language],
+    ['Location', [b.almirah,b.shelf,b.rowPos].filter(Boolean).join(' / ')],
+    ['Lent to', b.lentTo], ['Lent date', b.lentDate],
+    ['Borrowed from', b.borrowFrom], ['Borrow date', b.borrowDate],
+    ['Added', b.addedAt], ['Quantity', b.quantity > 1 ? b.quantity : null],
+  ].filter(([,v]) => v);
+  document.getElementById('modal-body').innerHTML = `
+    ${b.description ? `<div style="font-size:14px;color:var(--tx2);line-height:1.75;margin-bottom:16px;white-space:pre-wrap">${esc(b.description)}</div><div class="divider"></div>` : ''}
+    <div class="detail-row">${fields.map(([l,v]) => `<div class="detail-cell"><div class="dc-lbl">${esc(l)}</div><div class="dc-val">${esc(v)}</div></div>`).join('')}</div>
+    ${b.notes ? `<div style="background:var(--bg4);border-radius:var(--rs);padding:12px;font-size:13px;color:var(--tx2);line-height:1.65;margin-bottom:14px"><div style="font-size:10px;font-weight:800;color:var(--tx3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px">Notes</div>${esc(b.notes)}</div>` : ''}
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-dark" onclick="editBook('${b.id}');closeModal()">✏️ Edit</button>
+      <button class="btn btn-rust btn-sm" onclick="deleteBook('${b.id}');closeModal()" style="width:auto;padding:13px 16px">🗑</button>
+    </div>`;
+  document.getElementById('overlay').classList.add('on');
+}
+function closeModal(){ document.getElementById('overlay').classList.remove('on'); }
+function overlayBgClick(e){ if(e.target===document.getElementById('overlay')) closeModal(); }
+
+// ═══════════════════════════════════════════
+//  ADD / EDIT / DELETE BOOK
+// ═══════════════════════════════════════════
+const FIELDS = ['isbn','title','author','pages','year','genre','publisher','language','description','almirah','shelf','lent-to','lent-date','borrow-from','borrow-date','notes'];
+
+function clearForm(){
+  FIELDS.forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('row-pos').selectedIndex = 0;
+  document.getElementById('edit-id').value = '';
+  document.getElementById('form-heading').textContent = '📖 Add New Book';
+  document.getElementById('save-btn').textContent = 'Save Book';
+  editingId = null;
+  resetOCR();
+  stopScanner();
+}
+
+function cancelEdit(){ clearForm(); goTo('dash'); }
+
+function editBook(id){
+  const b = books.find(x => x.id === id); if (!b) return;
+  clearForm();
+  editingId = id;
+  document.getElementById('edit-id').value = id;
+  document.getElementById('form-heading').textContent = '✏️ Edit Book';
+  document.getElementById('save-btn').textContent = 'Update Book';
+  const map = {
+    isbn:b.isbn, title:b.title, author:b.author, pages:b.pages, year:b.year,
+    genre:b.genre, publisher:b.publisher, language:b.language,
+    description:b.description, almirah:b.almirah, shelf:b.shelf,
+    'lent-to':b.lentTo, 'lent-date':b.lentDate,
+    'borrow-from':b.borrowFrom, 'borrow-date':b.borrowDate, notes:b.notes
+  };
+  Object.entries(map).forEach(([k,v]) => { const el=document.getElementById(k); if(el&&v!=null) el.value=v; });
+  const rp = document.getElementById('row-pos');
+  for(let i=0;i<rp.options.length;i++) if(rp.options[i].value === b.rowPos) rp.selectedIndex=i;
+  goTo('add');
+}
+
+// ── DUPLICATE ALERT ──────────────────────────────────────────
+// Called when a duplicate is detected. Shows a clear modal
+// with the existing book's details and three choices:
+//   1. Increase quantity of existing entry (+1)
+//   2. Add as a separate new entry anyway
+//   3. Cancel and go back to edit the form
+function showDuplicateAlert(existingBook, reason, newData){
+  const locStr = [existingBook.almirah, existingBook.shelf, existingBook.rowPos].filter(Boolean).join(' / ') || '—';
+  const lentStr = existingBook.lentTo ? `Lent to: <strong>${esc(existingBook.lentTo)}</strong>` : '';
+
+  openDupModal(`
+    <div style="background:#fff8e1;border:2px solid var(--sun);border-radius:var(--rs);padding:13px 14px;margin-bottom:16px;font-size:13px;line-height:1.7">
+      ⚠️ ${reason}
+    </div>
+
+    <div style="background:#fff;border:1.5px solid var(--bd);border-radius:var(--rs);padding:12px 14px;margin-bottom:16px;font-size:13px;line-height:1.75">
+      <div style="font-family:'Fredoka One',cursive;font-size:17px;color:var(--ink);margin-bottom:4px">${esc(existingBook.title)}</div>
+      <div style="color:var(--tx2);margin-bottom:6px">${esc(existingBook.author || '—')}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;font-size:11px">
+        ${existingBook.genre ? `<span style="background:#d1fae5;color:#065f46;border-radius:999px;padding:2px 9px;font-weight:800">${esc(existingBook.genre)}</span>` : ''}
+        ${existingBook.pages ? `<span style="background:#fef9c3;color:#854d0e;border-radius:999px;padding:2px 9px;font-weight:800">${existingBook.pages} pp</span>` : ''}
+        <span style="background:#fef9c3;color:#854d0e;border-radius:999px;padding:2px 9px;font-weight:800">Qty: ${existingBook.quantity || 1}</span>
+        ${existingBook.isbn ? `<span style="background:#e0f2fe;color:#0369a1;border-radius:999px;padding:2px 9px;font-weight:800">ISBN: ${esc(existingBook.isbn)}</span>` : ''}
+      </div>
+      ${locStr !== '—' ? `<div style="color:var(--tx3);font-size:11px;margin-top:7px">📍 ${locStr}</div>` : ''}
+      ${lentStr ? `<div style="color:#92400e;font-size:11px;margin-top:4px">⚠ ${lentStr}</div>` : ''}
+    </div>
+
+    <div style="font-size:13px;font-weight:700;color:var(--tx2);margin-bottom:12px">What would you like to do?</div>
+
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <button class="btn btn-gold" onclick="dupIncreaseQty('${existingBook.id}')">
+        📚 Add +1 to existing entry (quantity becomes ${(existingBook.quantity||1)+1})
+      </button>
+      <button class="btn btn-dark" onclick="dupAddAnyway()">
+        ➕ Add as a separate new entry anyway
+      </button>
+      <button class="btn btn-outline" onclick="closeDupModal()">
+        ✏️ Go back and edit the form
+      </button>
+    </div>
+  `);
+
+  // Store pending new data so dupAddAnyway() can use it
+  window._pendingBookData = newData;
+}
+
+let _dupModalEl = null;
+
+function openDupModal(bodyHTML){
+  // Create modal if it doesn't exist
+  if (!_dupModalEl){
+    _dupModalEl = document.createElement('div');
+    _dupModalEl.id = 'dup-overlay';
+    _dupModalEl.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:700;align-items:flex-end;justify-content:center';
+    _dupModalEl.innerHTML = '<div id="dup-modal" style="background:#fff;border:2px solid var(--bd2);border-radius:var(--r) var(--r) 0 0;width:100%;max-width:520px;padding:18px 18px calc(22px + var(--sb));max-height:88vh;overflow-y:auto;animation:slideUp .25s cubic-bezier(.4,0,.2,1)"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px"><span style=\"font-family:'Fredoka One',cursive;font-size:20px;color:var(--tang)\">📋 Duplicate Detected</span><button onclick="closeDupModal()" style="background:none;border:none;font-size:24px;cursor:pointer;color:#aaa;line-height:1">×</button></div><div id="dup-modal-body"></div></div>';
+    _dupModalEl.addEventListener('click', e => { if(e.target === _dupModalEl) closeDupModal(); });
+    document.body.appendChild(_dupModalEl);
+  }
+  document.getElementById('dup-modal-body').innerHTML = bodyHTML;
+  _dupModalEl.style.display = 'flex';
+}
+
+function closeDupModal(){
+  if (_dupModalEl) _dupModalEl.style.display = 'none';
+  window._pendingBookData = null;
+}
+
+function dupIncreaseQty(existingId){
+  const idx = books.findIndex(b => b.id === existingId);
+  if (idx >= 0){
+    books[idx].quantity = (books[idx].quantity || 1) + 1;
+    save();
+    toast('Quantity updated to ' + books[idx].quantity + ' ✓');
+  }
+  closeDupModal();
+  clearForm();
+  goTo('dash');
+}
+
+function dupAddAnyway(){
+  const data = window._pendingBookData;
+  if (!data){ closeDupModal(); return; }
+  books.unshift({ id: uid(), ...data, quantity: 1, addedAt: today() });
+  save();
+  toast('Added as new separate entry ✓');
+  closeDupModal();
+  clearForm();
+  goTo('dash');
+}
+
+function saveBook(){
+  const title = (document.getElementById('title').value||'').trim();
+  if (!title){ toast('Book title is required', 'err'); return; }
+
+  const data = {
+    isbn: document.getElementById('isbn').value.trim(),
+    title,
+    author: document.getElementById('author').value.trim(),
+    pages: document.getElementById('pages').value.trim(),
+    year: document.getElementById('year').value.trim(),
+    genre: document.getElementById('genre').value.trim(),
+    publisher: document.getElementById('publisher').value.trim(),
+    language: document.getElementById('language').value.trim(),
+    description: document.getElementById('description').value.trim(),
+    almirah: document.getElementById('almirah').value.trim(),
+    shelf: document.getElementById('shelf').value.trim(),
+    rowPos: document.getElementById('row-pos').value,
+    lentTo: document.getElementById('lent-to').value.trim(),
+    lentDate: document.getElementById('lent-date').value,
+    borrowFrom: document.getElementById('borrow-from').value.trim(),
+    borrowDate: document.getElementById('borrow-date').value,
+    notes: document.getElementById('notes').value.trim(),
+  };
+
+  if (editingId){
+    const i = books.findIndex(b => b.id === editingId);
+    if (i >= 0) books[i] = {...books[i], ...data};
+    save(); toast('Book updated ✓'); clearForm(); goTo('dash');
+    return;
+  }
+
+  // ── Duplicate detection ─────────────────────────────────────
+  // Check by title (case-insensitive) AND optionally by ISBN if present
+  const dupByTitle = books.find(b => b.title.toLowerCase() === title.toLowerCase());
+  const dupByISBN  = data.isbn ? books.find(b => b.isbn && b.isbn === data.isbn) : null;
+  const dup = dupByISBN || dupByTitle;
+
+  if (dup){
+    const reason = dupByISBN
+      ? `ISBN <strong>${esc(data.isbn)}</strong> already exists as "<strong>${esc(dup.title)}</strong>"`
+      : `A book titled "<strong>${esc(dup.title)}</strong>" already exists`;
+
+    showDuplicateAlert(dup, reason, data);
+    return;
+  }
+
+  books.unshift({ id: uid(), ...data, quantity: 1, addedAt: today() });
+  save(); toast('Book added to library ✓'); clearForm(); goTo('dash');
+}
+
+function deleteBook(id){
+  if (!confirm('Remove this book from the library?')) return;
+  books = books.filter(b => b.id !== id);
+  save(); renderBooks(); toast('Book removed');
+}
+
+// ═══════════════════════════════════════════
+//  BARCODE SCANNER
+//  Uses html5-qrcode v2 with multi-format
+//  support including EAN-13 used by Indian
+//  publishers. Higher FPS and resolution for
+//  faster detection.
+// ═══════════════════════════════════════════
+function toggleScanner(){
+  if (scannerOn) stopScanner();
+  else startScanner();
+}
+
+async function startScanner(){
+  if (scannerOn) return;
+  document.getElementById('scanner-shell').classList.add('on');
+  document.getElementById('scan-btn').textContent = '⏹ Stop';
+  document.getElementById('scan-tip').textContent = 'Starting camera…';
+
+  // Clean up any previous instance first
+  if (scannerInst){
+    try{ await scannerInst.stop(); }catch(e){}
+    try{ await scannerInst.clear(); }catch(e){}
+    scannerInst = null;
+  }
+  document.getElementById('reader').innerHTML = '';
+
+  try {
+    scannerInst = new Html5Qrcode('reader', { verbose: false });
+
+    // Build supported formats list — NOTE: ISBN_13 does NOT exist in html5-qrcode
+    // EAN_13 is the correct format for ISBN barcodes (ISBN-13 uses EAN-13 encoding)
+    let formats;
+    try {
+      formats = [
+        Html5QrcodeSupportedFormats.EAN_13,    // covers all ISBN-13 barcodes
+        Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.QR_CODE,
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.CODE_39,
+        Html5QrcodeSupportedFormats.UPC_A,
+        Html5QrcodeSupportedFormats.UPC_E,
+      ];
+    } catch(fe){
+      formats = null; // fallback: let library detect all formats
+    }
+
+    const config = {
+      fps: 15,
+      qrbox: { width: 250, height: 100 },
+      disableFlip: false,
+      // Only add formatsToSupport if we built the list successfully
+      ...(formats ? { formatsToSupport: formats } : {})
+    };
+
+    // Camera constraints — keep simple for maximum compatibility
+    // Do NOT specify resolution or aspectRatio — let the browser choose
+    const cameraConstraints = { facingMode: { ideal: 'environment' } };
+
+    await scannerInst.start(
+      cameraConstraints,
+      config,
+      (code, result) => {
+        // SUCCESS
+        document.getElementById('isbn').value = code;
+        document.getElementById('scan-tip').textContent = '✓ Scanned: ' + code;
+        stopScanner();
+        toast('Scanned: ' + code + ' — fetching details…');
+        fetchMeta();
+      },
+      (errorMsg) => {
+        // Called every frame when no barcode found — this is NORMAL, not an error
+        // Do not do anything here
+      }
+    );
+
+    scannerOn = true;
+    document.getElementById('scan-tip').textContent = 'Align barcode inside the frame — hold steady';
+
+    setTimeout(() => {
+      if (scannerOn) document.getElementById('scan-tip').textContent = 'Tip: good light helps · barcode parallel to frame';
+    }, 7000);
+
+  } catch(err){
+    scannerOn = false;
+    if (scannerInst){ try{ await scannerInst.clear(); }catch(e){} scannerInst = null; }
+    document.getElementById('reader').innerHTML = '';
+    document.getElementById('scanner-shell').classList.remove('on');
+    document.getElementById('scan-btn').textContent = '📷 Scan';
+    const msg = err.message || String(err);
+    if (/permission|not allowed|denied/i.test(msg)){
+      document.getElementById('scan-tip').textContent = '';
+      toast('Camera permission denied. Please allow camera access in browser settings.', 'err');
+    } else if (/no camera|device not found|could not start/i.test(msg)){
+      toast('No camera found on this device.', 'err');
+    } else {
+      toast('Scanner failed: ' + msg, 'err');
+    }
+  }
+}
+
+async function stopScanner(){
+  scannerOn = false;
+  if (scannerInst){
+    try{ await scannerInst.stop(); }catch(e){}
+    try{ await scannerInst.clear(); }catch(e){}
+    scannerInst = null;
+  }
+  document.getElementById('scanner-shell').classList.remove('on');
+  document.getElementById('scan-btn').textContent = '📷 Scan';
+  // Small delay before clearing DOM to avoid html5-qrcode race condition
+  setTimeout(() => {
+    const r = document.getElementById('reader');
+    if (r) r.innerHTML = '';
+  }, 200);
+}
+
+// ═══════════════════════════════════════════
+//  METADATA FETCH
+//  1st: Google Books  2nd: OpenLibrary
+// ═══════════════════════════════════════════
+async function fetchMeta(){
+  const isbn = (document.getElementById('isbn').value || '').replace(/[^0-9X]/gi,'').trim();
+  if (!isbn){ toast('Enter or scan an ISBN first', 'err'); return; }
+  toast('Fetching book details…');
+  try {
+    // Google Books
+    const gr = await fetch('https://www.googleapis.com/books/v1/volumes?q=isbn:' + isbn);
+    const gd = await gr.json();
+    if (gd.items && gd.items.length > 0){
+      const v = gd.items[0].volumeInfo;
+      setField('title', v.title);
+      setField('author', (v.authors||[]).join(', '));
+      setField('pages', v.pageCount);
+      setField('year', (v.publishedDate||'').slice(0,4));
+      setField('genre', (v.categories||[''])[0]);
+      setField('publisher', v.publisher);
+      setField('language', v.language === 'en' ? 'English' : v.language||'');
+      setField('description', v.description);
+      toast('Metadata fetched from Google Books ✓'); return;
+    }
+    // OpenLibrary fallback
+    const or = await fetch(`https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&jscmd=data&format=json`);
+    const od = await or.json();
+    const ok = od['ISBN:'+isbn];
+    if (ok){
+      setField('title', ok.title);
+      setField('author', (ok.authors||[]).map(a=>a.name).join(', '));
+      setField('pages', ok.number_of_pages);
+      setField('year', (ok.publish_date||'').slice(-4));
+      setField('publisher', (ok.publishers||[]).map(p=>p.name).join(', '));
+      toast('Metadata fetched from OpenLibrary ✓'); return;
+    }
+    toast('No metadata found for this ISBN', 'err');
+  } catch(e){ toast('Fetch failed — check internet connection', 'err'); }
+}
+function setField(id, val){ const el=document.getElementById(id); if(el && val != null && val !== '') el.value = val; }
+
+// ═══════════════════════════════════════════
+//  OCR — CANVAS CROP + TESSERACT
+//  Full custom canvas crop: no external
+//  cropper library. Works on both iOS Safari
+//  and Android Chrome with touch + mouse.
+// ═══════════════════════════════════════════
+function resetOCR(){
+  ocrImage = null; ocrCtx = null;
+  cropA = null; cropB = null; cropping = false;
+  document.getElementById('ocr-canvas-wrap').style.display = 'none';
+  document.getElementById('ocr-inst').style.display = 'none';
+  document.getElementById('ocr-action-row').style.display = 'none';
+  document.getElementById('ocr-status').textContent = '';
+  document.getElementById('ocr-file').value = '';
+  document.getElementById('ocr-progress').style.display = 'none';
+  document.getElementById('ocr-fill').style.width = '0%';
+}
+
+function clearCrop(){
+  cropA = null; cropB = null;
+  if (ocrCtx && ocrImage) drawOCRCanvas();
+  document.getElementById('ocr-status').textContent = 'Crop cleared — drag to select a new area';
+}
+
+function loadOCRImage(event){
+  const file = event.target.files[0]; if (!file) return;
+  document.getElementById('ocr-status').textContent = 'Loading image…';
+  const fr = new FileReader();
+  fr.onload = e => {
+    ocrImage = new Image();
+    ocrImage.onload = () => {
+      const wrap = document.getElementById('ocr-canvas-wrap');
+      const canvas = document.getElementById('ocr-canvas');
+      wrap.style.display = 'block';
+      const maxW = Math.min(window.innerWidth - 58, 480);
+      const displayW = Math.min(maxW, ocrImage.naturalWidth);
+      const displayH = Math.round(ocrImage.naturalHeight * (displayW / ocrImage.naturalWidth));
+      canvas.width = ocrImage.naturalWidth;
+      canvas.height = ocrImage.naturalHeight;
+      canvas.style.width = displayW + 'px';
+      canvas.style.height = displayH + 'px';
+      // Scale factors for coordinate mapping
+      ocrScaleX = ocrImage.naturalWidth / displayW;
+      ocrScaleY = ocrImage.naturalHeight / displayH;
+      ocrCtx = canvas.getContext('2d');
+      drawOCRCanvas();
+      cropA = null; cropB = null;
+      document.getElementById('ocr-inst').style.display = 'block';
+      document.getElementById('ocr-action-row').style.display = 'flex';
+      document.getElementById('ocr-status').textContent = 'Image loaded — drag to select area';
+    };
+    ocrImage.src = e.target.result;
+  };
+  fr.readAsDataURL(file);
+}
+
+function drawOCRCanvas(){
+  if (!ocrCtx || !ocrImage) return;
+  const cv = document.getElementById('ocr-canvas');
+  ocrCtx.clearRect(0,0,cv.width,cv.height);
+  ocrCtx.drawImage(ocrImage, 0, 0, cv.width, cv.height);
+  if (cropA && cropB){
+    const x1=Math.min(cropA.x,cropB.x), y1=Math.min(cropA.y,cropB.y);
+    const w=Math.abs(cropB.x-cropA.x), h=Math.abs(cropB.y-cropA.y);
+    ocrCtx.save();
+    ocrCtx.fillStyle='rgba(0,0,0,0.55)';
+    ocrCtx.fillRect(0,0,cv.width,cv.height);
+    ocrCtx.clearRect(x1,y1,w,h);
+    ocrCtx.drawImage(ocrImage,x1,y1,w,h,x1,y1,w,h);
+    ocrCtx.strokeStyle='#d4a017';
+    ocrCtx.lineWidth=3;
+    ocrCtx.strokeRect(x1,y1,w,h);
+    // Handles
+    const hs=10;
+    [[x1,y1],[x1+w,y1],[x1,y1+h],[x1+w,y1+h]].forEach(([cx,cy])=>{
+      ocrCtx.fillStyle='#d4a017';
+      ocrCtx.fillRect(cx-hs/2,cy-hs/2,hs,hs);
+    });
+    ocrCtx.restore();
+  }
+}
+
+function getCanvasPos(e){
+  const cv = document.getElementById('ocr-canvas');
+  const rect = cv.getBoundingClientRect();
+  const src = e.touches ? e.touches[0] : e;
+  return {
+    x: Math.round((src.clientX - rect.left) * ocrScaleX),
+    y: Math.round((src.clientY - rect.top) * ocrScaleY)
+  };
+}
+
+function cropMouseDown(e){ e.preventDefault(); cropping=true; cropA=getCanvasPos(e); cropB=cropA; drawOCRCanvas(); }
+function cropMouseMove(e){ e.preventDefault(); if(!cropping) return; cropB=getCanvasPos(e); drawOCRCanvas(); }
+function cropMouseUp(e){ cropping=false; if(cropA&&cropB) document.getElementById('ocr-status').textContent='Area selected — tap Extract text'; }
+function cropTouchStart(e){ e.preventDefault(); cropping=true; cropA=getCanvasPos(e); cropB=cropA; drawOCRCanvas(); }
+function cropTouchMove(e){ e.preventDefault(); if(!cropping) return; cropB=getCanvasPos(e); drawOCRCanvas(); }
+function cropTouchEnd(e){ e.preventDefault(); cropping=false; if(cropA&&cropB) document.getElementById('ocr-status').textContent='Area selected — tap Extract text'; }
+
+// ── IMAGE PRE-PROCESSING FOR OCR ────────────────────────────
+// Converts cropped region to a high-contrast greyscale image
+// at the optimal resolution for Tesseract. This is the single
+// biggest factor in OCR accuracy.
+function preprocessForOCR(srcCanvas){
+  const TARGET_WIDTH = 1800; // optimal for Tesseract LSTM engine
+  const MIN_WIDTH = 600;     // upscale small crops to at least this
+
+  const srcW = srcCanvas.width;
+  const srcH = srcCanvas.height;
+
+  // Calculate output dimensions
+  let outW, outH;
+  if (srcW < MIN_WIDTH){
+    // Upscale small crops — small text needs upscaling
+    const scale = MIN_WIDTH / srcW;
+    outW = Math.round(srcW * scale);
+    outH = Math.round(srcH * scale);
+  } else if (srcW > TARGET_WIDTH){
+    // Downscale huge images — too large hurts accuracy
+    const scale = TARGET_WIDTH / srcW;
+    outW = Math.round(srcW * scale);
+    outH = Math.round(srcH * scale);
+  } else {
+    outW = srcW;
+    outH = srcH;
+  }
+
+  const out = document.createElement('canvas');
+  out.width = outW;
+  out.height = outH;
+  const ctx = out.getContext('2d');
+
+  // Step 1: Draw scaled image
+  ctx.drawImage(srcCanvas, 0, 0, outW, outH);
+
+  // Step 2: Get pixel data for processing
+  const imgData = ctx.getImageData(0, 0, outW, outH);
+  const d = imgData.data;
+
+  for (let i = 0; i < d.length; i += 4){
+    // Greyscale using luminance weights (better than simple average)
+    const grey = Math.round(0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2]);
+
+    // Contrast enhancement — stretch histogram
+    // Values below 80 pushed darker, values above 180 pushed lighter
+    let enhanced;
+    if (grey < 80)       enhanced = Math.round(grey * 0.6);
+    else if (grey > 180) enhanced = Math.min(255, Math.round(180 + (grey-180)*1.4));
+    else                 enhanced = grey;
+
+    // Mild sharpening via unsharp mask approximation
+    // (done per-pixel using neighbourhood is too slow in JS;
+    // contrast enhancement above achieves similar effect)
+
+    d[i] = d[i+1] = d[i+2] = enhanced;
+    // alpha unchanged
+  }
+
+  ctx.putImageData(imgData, 0, 0);
+  return out;
+}
+
+// ── CLEAN UP TESSERACT OUTPUT ────────────────────────────────
+function cleanOCRText(raw){
+  return raw
+    // Remove stray single characters on their own line (common artefacts)
+    .replace(/^[^a-zA-Z0-9-￿]{1,2}$/gm, '')
+    // Collapse 3+ consecutive newlines to 2
+    .replace(/
+{3,}/g, '
+
+')
+    // Fix broken hyphenation (word- 
+ word → wordword)
+    .replace(/(\w)-
+(\w)/g, '$1$2')
+    // Remove lines that are purely punctuation/symbols
+    .replace(/^[|}{\/<>~`^*_=+@#$%]{1,5}$/gm, '')
+    // Trim each line
+    .split('
+').map(l => l.trim()).join('
+')
+    // Final trim
+    .trim();
+}
+
+async function runOCR(){
+  if (!ocrImage){ toast('Please load an image first', 'err'); return; }
+  const statusEl = document.getElementById('ocr-status');
+  const progBar = document.getElementById('ocr-progress');
+  const progFill = document.getElementById('ocr-fill');
+
+  // ── Build source canvas from crop or full image ──────────
+  let sx, sy, sw, sh;
+  if (cropA && cropB){
+    sx=Math.min(cropA.x,cropB.x); sy=Math.min(cropA.y,cropB.y);
+    sw=Math.abs(cropB.x-cropA.x); sh=Math.abs(cropB.y-cropA.y);
+    if (sw < 30 || sh < 20){
+      toast('Selection too small — drag a larger area', 'err'); return;
+    }
+  } else {
+    sx=0; sy=0; sw=ocrImage.naturalWidth; sh=ocrImage.naturalHeight;
+  }
+
+  // Raw crop canvas (full resolution from original image)
+  const raw = document.createElement('canvas');
+  raw.width = sw; raw.height = sh;
+  raw.getContext('2d').drawImage(ocrImage, sx, sy, sw, sh, 0, 0, sw, sh);
+
+  // Pre-process for better OCR accuracy
+  statusEl.textContent = 'Enhancing image for OCR…';
+  progBar.style.display = 'block';
+  progFill.style.width = '8%';
+  const processed = preprocessForOCR(raw);
+
+  // ── Load Tesseract if needed ─────────────────────────────
+  try {
+    if (typeof Tesseract === 'undefined'){
+      statusEl.textContent = 'Downloading OCR engine (first time only, ~3 MB)…';
+      progFill.style.width = '12%';
+      await new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = 'https://unpkg.com/tesseract.js@5/dist/tesseract.min.js';
+        s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
+      });
+    }
+
+    statusEl.textContent = 'Recognising text…';
+    progFill.style.width = '18%';
+
+    // ── Run Tesseract with optimal settings ─────────────────
+    // PSM 6 = Assume a single uniform block of text (best for book blurbs)
+    // PSM 3 = Fully automatic (fallback if 6 gives nothing)
+    // OEM 1 = LSTM neural net engine (most accurate)
+    const result = await Tesseract.recognize(processed, 'eng', {
+      logger: m => {
+        if (m.status === 'recognizing text'){
+          progFill.style.width = Math.round(18 + m.progress*78) + '%';
+          statusEl.textContent = 'Recognising… ' + Math.round(m.progress*100) + '%';
+        } else if (m.status === 'loading tesseract core'){
+          statusEl.textContent = 'Loading OCR core…';
+        } else if (m.status === 'initializing api'){
+          statusEl.textContent = 'Initialising OCR…';
+          progFill.style.width = '15%';
+        }
+      },
+      // Tesseract parameters for better accuracy
+      tessedit_pageseg_mode: '6',    // uniform block of text
+      tessedit_ocr_engine_mode: '1', // LSTM only
+      preserve_interword_spaces: '1',
+    });
+
+    progFill.style.width = '100%';
+
+    let text = result.data.text || '';
+
+    // If PSM 6 returned very little, the page might have varied layout
+    // Check confidence — if average confidence < 40, warn user
+    const conf = result.data.confidence || 0;
+    const cleaned = cleanOCRText(text);
+
+    if (!cleaned){
+      statusEl.textContent = 'No readable text found — try: better lighting, less blur, or a wider selection';
+      toast('No text detected', 'err');
+      return;
+    }
+
+    const cur = document.getElementById('description').value.trim();
+    document.getElementById('description').value = cur ? cur + '\n\n' + cleaned : cleaned;
+
+    // Show confidence as a guide to user
+    const confMsg = conf >= 80 ? '(high confidence ✓)' :
+                    conf >= 55 ? '(medium confidence — check for errors)' :
+                    '(low confidence — some words may be wrong)';
+    statusEl.textContent = \`✓ Extracted \${cleaned.length} characters \${confMsg}\`;
+    toast('Text extracted ✓');
+
+  } catch(e){
+    statusEl.textContent = 'OCR failed: ' + (e.message || String(e));
+    toast('OCR failed — try again', 'err');
+  } finally {
+    setTimeout(() => {
+      progBar.style.display = 'none';
+      progFill.style.width = '0%';
+    }, 2000);
+  }
+}
+
+// ═══════════════════════════════════════════
+//  EXPORT / IMPORT
+// ═══════════════════════════════════════════
+function refreshExportStats(){
+  const el = document.getElementById('export-stats');
+  if (!el) return;
+  el.textContent = `${books.length} books  ·  ${books.filter(b=>b.lentTo).length} lent out  ·  ${books.filter(b=>b.borrowFrom).length} borrowed`;
+}
+
+function exportData(){
+  const payload = { version:'mylib_v1', exportedAt:new Date().toISOString(), totalBooks:books.length, books };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'my-library-' + today() + '.json';
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+  toast('Library exported ✓');
+}
+
+function importData(e){
+  const file = e.target.files[0]; if (!file) return;
+  const fr = new FileReader();
+  fr.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      const imported = Array.isArray(data) ? data : (data.books || []);
+      if (!imported.length && !confirm('The backup appears empty. Import anyway?')) return;
+      if (!confirm(`Replace current ${books.length} books with ${imported.length} books from backup?`)) return;
+      books = imported;
+      save(); renderBooks(); refreshExportStats();
+      toast(`Imported ${books.length} books ✓`);
+      e.target.value = '';
+    } catch(err){ toast('Could not read file — is it a valid backup?', 'err'); }
+  };
+  fr.readAsText(file);
+}
+
+// ═══════════════════════════════════════════
+//  PWA MANIFEST (dynamic — references
+//  mylibrary.png in the same folder)
+// ═══════════════════════════════════════════
+(function injectManifest(){
+  const m = {
+    name: 'My Library', short_name: 'My Library',
+    start_url: './', display: 'standalone',
+    background_color: '#0d0a06', theme_color: '#0d0a06',
+    description: 'Personal book catalogue',
+    icons: [
+      { src: 'mylibrary.png', sizes: '192x192', type: 'image/png' },
+      { src: 'mylibrary.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+    ]
+  };
+  const blob = new Blob([JSON.stringify(m)], {type:'application/manifest+json'});
+  document.getElementById('pwa-manifest').href = URL.createObjectURL(blob);
+})();
+
+// ═══════════════════════════════════════════
+//  SERVICE WORKER (offline support)
+// ═══════════════════════════════════════════
+if ('serviceWorker' in navigator){
+  const sw = `
+const V='mylib-v1';
+self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(V).then(c=>c.addAll([self.registration.scope,'./mylibrary.png']).catch(()=>{})));});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==V).map(k=>caches.delete(k)))));self.clients.claim();});
+self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{if(res&&res.status===200&&e.request.method==='GET'){const c=res.clone();caches.open(V).then(ca=>ca.put(e.request,c));}return res;}).catch(()=>caches.match(e.request))));});`;
+  const swURL = URL.createObjectURL(new Blob([sw], {type:'application/javascript'}));
+  navigator.serviceWorker.register(swURL, {scope:'./'}).catch(()=>{});
+}
+
+// ═══════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════
+load();
+renderBooks();
+updateStats();
+</script>
+</body>
+</html>
