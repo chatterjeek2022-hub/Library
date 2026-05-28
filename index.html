@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Personal Library</title>
+
+<link rel="icon" type="image/png" href="mylibrary.png">
+<link rel="apple-touch-icon" href="mylibrary.png">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<style>
+body{
+background:linear-gradient(135deg,#eff6ff,#f5f3ff,#fdf2f8);
+font-family:Arial,sans-serif;
+}
+.card{
+background:white;
+border-radius:24px;
+padding:20px;
+box-shadow:0 10px 25px rgba(0,0,0,0.08);
+}
+</style>
+</head>
+
+<body class="p-5">
+
+<div class="max-w-7xl mx-auto">
+
+<div class="card mb-6 flex items-center gap-4">
+<img src="mylibrary.png" class="w-20 h-20 rounded-2xl">
+<div>
+<h1 class="text-4xl font-bold text-indigo-900">📚 My Personal Library</h1>
+<p class="text-gray-600">Offline Personal Library Ecosystem</p>
+</div>
+</div>
+
+<div class="grid md:grid-cols-3 gap-4 mb-6">
+
+<div class="card text-center">
+<div id="totalBooks" class="text-4xl font-bold text-blue-700">0</div>
+<div class="text-gray-600 mt-2">Total Books</div>
+</div>
+
+<div class="card text-center">
+<div id="lentBooks" class="text-4xl font-bold text-red-700">0</div>
+<div class="text-gray-600 mt-2">Lent Books</div>
+</div>
+
+<div class="card text-center">
+<div id="borrowedBooks" class="text-4xl font-bold text-green-700">0</div>
+<div class="text-gray-600 mt-2">Borrowed Books</div>
+</div>
+
+</div>
+
+<div class="card mb-6">
+
+<h2 class="text-3xl font-bold text-indigo-900 mb-5">➕ Add Book</h2>
+
+<div class="grid md:grid-cols-2 gap-4">
+
+<input id="title" placeholder="Book Title"
+class="border rounded-xl p-3">
+
+<input id="author" placeholder="Author"
+class="border rounded-xl p-3">
+
+<input id="isbn" placeholder="ISBN / Barcode"
+class="border rounded-xl p-3">
+
+<input id="pages" placeholder="Pages"
+class="border rounded-xl p-3">
+
+<select id="status"
+class="border rounded-xl p-3">
+<option value="Available">Available</option>
+<option value="Lent">Lent</option>
+<option value="Borrowed">Borrowed</option>
+</select>
+
+<input id="borrower" placeholder="Borrower / Lender"
+class="border rounded-xl p-3">
+
+</div>
+
+<textarea id="description"
+placeholder="Description / Notes"
+class="border rounded-xl p-3 w-full h-40 mt-4"></textarea>
+
+<div class="flex gap-3 flex-wrap mt-5">
+
+<button onclick="addBook()"
+class="bg-blue-700 text-white px-5 py-3 rounded-xl font-bold">
+Save Book
+</button>
+
+<button onclick="exportData()"
+class="bg-green-700 text-white px-5 py-3 rounded-xl font-bold">
+Export Backup
+</button>
+
+<label class="bg-purple-700 text-white px-5 py-3 rounded-xl font-bold cursor-pointer">
+Import Backup
+<input type="file" hidden onchange="importData(event)">
+</label>
+
+<button onclick="startScanner()"
+class="bg-pink-700 text-white px-5 py-3 rounded-xl font-bold">
+Scan Barcode
+</button>
+
+</div>
+
+<div id="scanner"
+class="mt-5 hidden"></div>
+
+</div>
+
+<div class="card">
+
+<div class="flex justify-between items-center mb-5">
+
+<h2 class="text-3xl font-bold text-indigo-900">
+📚 Library Collection
+</h2>
+
+<input id="search"
+oninput="renderBooks()"
+placeholder="Search books..."
+class="border rounded-xl p-3 w-72">
+
+</div>
+
+<div id="booksContainer"
+class="grid md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+</div>
+
+</div>
+
+<script>
+
+let books =
+JSON.parse(localStorage.getItem("myLibraryBooks") || "[]");
+
+let editIndex = null;
+
+function saveStorage(){
+
+localStorage.setItem(
+"myLibraryBooks",
+JSON.stringify(books)
+);
+
+}
+
+function updateDashboard(){
+
+document.getElementById("totalBooks").innerText =
+books.length;
+
+document.getElementById("lentBooks").innerText =
+books.filter(b=>b.status==="Lent").length;
+
+document.getElementById("borrowedBooks").innerText =
+books.filter(b=>b.status==="Borrowed").length;
+
+}
+
+function clearForm(){
+
+document.getElementById("title").value="";
+document.getElementById("author").value="";
+document.getElementById("isbn").value="";
+document.getElementById("pages").value="";
+document.getElementById("borrower").value="";
+document.getElementById("description").value="";
+document.getElementById("status").value="Available";
+
+editIndex = null;
+
+}
+
+function addBook(){
+
+const book = {
+
+title:document.getElementById("title").value,
+author:document.getElementById("author").value,
+isbn:document.getElementById("isbn").value,
+pages:document.getElementById("pages").value,
+status:document.getElementById("status").value,
+borrower:document.getElementById("borrower").value,
+description:document.getElementById("description").value
+
+};
+
+if(!book.title){
+
+alert("Please enter book title");
+
+return;
+
+}
+
+if(editIndex===null){
+
+books.push(book);
+
+}else{
+
+books[editIndex]=book;
+
+}
+
+saveStorage();
+
+renderBooks();
+
+updateDashboard();
+
+clearForm();
+
+alert("Book saved successfully");
+
+}
+
+function renderBooks(){
+
+const container =
+document.getElementById("booksContainer");
+
+container.innerHTML="";
+
+const q =
+document.getElementById("search").value.toLowerCase();
+
+books.forEach((book,index)=>{
+
+if(
+book.title.toLowerCase().includes(q) ||
+book.author.toLowerCase().includes(q)
+){
+
+container.innerHTML += `
+
+<div class="card">
+
+<h3 class="text-2xl font-bold text-indigo-900">
+${book.title}
+</h3>
+
+<div class="mt-3 space-y-2 text-gray-700">
+
+<div><b>Author:</b> ${book.author}</div>
+
+<div><b>ISBN:</b> ${book.isbn}</div>
+
+<div><b>Pages:</b> ${book.pages}</div>
+
+<div><b>Status:</b> ${book.status}</div>
+
+<div><b>Borrower/Lender:</b> ${book.borrower}</div>
+
+<div><b>Description:</b> ${book.description}</div>
+
+</div>
+
+<div class="flex gap-3 mt-5">
+
+<button onclick="editBook(${index})"
+class="bg-blue-700 text-white px-4 py-2 rounded-xl">
+Edit
+</button>
+
+<button onclick="deleteBook(${index})"
+class="bg-red-700 text-white px-4 py-2 rounded-xl">
+Delete
+</button>
+
+</div>
+
+</div>
+
+`;
+
+}
+
+});
+
+}
+
+function editBook(index){
+
+const book = books[index];
+
+document.getElementById("title").value=book.title;
+document.getElementById("author").value=book.author;
+document.getElementById("isbn").value=book.isbn;
+document.getElementById("pages").value=book.pages;
+document.getElementById("status").value=book.status;
+document.getElementById("borrower").value=book.borrower;
+document.getElementById("description").value=book.description;
+
+editIndex = index;
+
+window.scrollTo({
+top:0,
+behavior:"smooth"
+});
+
+}
+
+function deleteBook(index){
+
+if(confirm("Delete this book?")){
+
+books.splice(index,1);
+
+saveStorage();
+
+renderBooks();
+
+updateDashboard();
+
+}
+
+}
+
+function exportData(){
+
+const blob = new Blob(
+[JSON.stringify(books,null,2)],
+{type:"application/json"}
+);
+
+const a = document.createElement("a");
+
+a.href = URL.createObjectURL(blob);
+
+a.download = "library-backup.json";
+
+a.click();
+
+}
+
+function importData(event){
+
+const file = event.target.files[0];
+
+if(!file) return;
+
+const reader = new FileReader();
+
+reader.onload = function(e){
+
+books = JSON.parse(e.target.result);
+
+saveStorage();
+
+renderBooks();
+
+updateDashboard();
+
+alert("Backup imported");
+
+};
+
+reader.readAsText(file);
+
+}
+
+function startScanner(){
+
+document.getElementById("scanner")
+.classList.remove("hidden");
+
+const scanner = new Html5Qrcode("scanner");
+
+scanner.start(
+{ facingMode:"environment" },
+{
+fps:10,
+qrbox:250
+},
+(decodedText)=>{
+
+document.getElementById("isbn").value =
+decodedText;
+
+scanner.stop();
+
+document.getElementById("scanner")
+.classList.add("hidden");
+
+},
+()=>{}
+);
+
+}
+
+renderBooks();
+
+updateDashboard();
+
+</script>
+
+</body>
+</html>
